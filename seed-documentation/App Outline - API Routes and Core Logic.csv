@@ -1,0 +1,2 @@
+Route ID,Action Name,HTTP Method,Endpoint Path,Auth Required,Related PV IDs,Related FR IDs,Input Parameters,Validation Rules,Expected Output,Success Status Code,Error Cases,Database Interaction,Related Models,Side Effects,Notes
+RT-001,,,,,,,,,,,,,,,
