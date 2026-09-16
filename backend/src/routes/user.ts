@@ -5,11 +5,11 @@ import {
   updateSettingsValidation,
   validate,
 } from '../middleware/validation.js';
-import { protect } from '../middleware/auth.js';
+import { requireAuth } from '../auth/index.js';
 
 const router: Router = Router();
 
-router.put('/:userID', protect, updateProfileValidation, validate, updateProfile);
-router.put('/:userID/settings', protect, updateSettingsValidation, validate, updateSettings);
+router.put('/:userID', requireAuth, updateProfileValidation, validate, updateProfile);
+router.put('/:userID/settings', requireAuth, updateSettingsValidation, validate, updateSettings);
 
 export default router;

@@ -1,3 +1,7 @@
+/**
+ * LEGACY — JWT auth routes, mounted only when AUTH_PROVIDER=jwt.
+ * Better Auth handles /api/auth by default. See `src/auth/`.
+ */
 import { Router } from 'express';
 import { signup, login, getMe } from '../controllers/authController.js';
 import { signupValidation, loginValidation, validate } from '../middleware/validation.js';

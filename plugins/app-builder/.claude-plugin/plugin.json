@@ -1,0 +1,8 @@
+{
+  "name": "app-builder",
+  "version": "1.0.0",
+  "description": "Guides a non-technical person from an idea to a running app: asks plain-English questions, scaffolds a production-ready MERN stack from the MERN-TEMPLATE repo, installs everything, builds v1, and starts it locally.",
+  "author": {
+    "name": "thomsonm685"
+  }
+}

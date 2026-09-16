@@ -1,0 +1,771 @@
+<title>Make Your First App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+  :root {
+    --ground: #fafafc;
+    --surface: #ffffff;
+    --ink: #16182a;
+    --muted: #5b5f77;
+    --faint: #8b8fa6;
+    --accent: #3f3bc4;
+    --accent-soft: #eceafb;
+    --note: #8a5a12;
+    --note-soft: #fbf3e4;
+    --rule: #e3e3ee;
+    --sunken: #f1f1f7;
+    --terminal-bg: #1b1d2c;
+    --terminal-ink: #eceaf6;
+    --terminal-dim: #8f93ad;
+    --numeral: #e7e6f6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+      --ground: #12131e;
+      --surface: #1a1c2a;
+      --ink: #e8e8f3;
+      --muted: #9a9eb6;
+      --faint: #74788e;
+      --accent: #aba8fb;
+      --accent-soft: #23243a;
+      --note: #e0aa61;
+      --note-soft: #251f16;
+      --rule: #2a2c3e;
+      --sunken: #0e0f19;
+      --terminal-bg: #0b0c14;
+      --terminal-ink: #e8e8f3;
+      --terminal-dim: #797d96;
+      --numeral: #23253a;
+    }
+  }
+
+  :root[data-theme='dark'] {
+    --ground: #12131e;
+    --surface: #1a1c2a;
+    --ink: #e8e8f3;
+    --muted: #9a9eb6;
+    --faint: #74788e;
+    --accent: #aba8fb;
+    --accent-soft: #23243a;
+    --note: #e0aa61;
+    --note-soft: #251f16;
+    --rule: #2a2c3e;
+    --sunken: #0e0f19;
+    --terminal-bg: #0b0c14;
+    --terminal-ink: #e8e8f3;
+    --terminal-dim: #797d96;
+    --numeral: #23253a;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 50rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 7vw, 5.5rem) clamp(1.25rem, 5vw, 2.5rem) 5rem;
+  }
+
+  h1, h2, h3, .eyebrow, .numeral, .btn-label, .switch button, .skip {
+    font-family: 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.25rem;
+  }
+
+  h1 {
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    margin: 0 0 1.25rem;
+  }
+
+  .standfirst {
+    font-size: clamp(1.125rem, 2.6vw, 1.3rem);
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 34ch;
+    margin: 0;
+  }
+
+  /* ---------- surface switch ---------- */
+
+  .switch-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .switch-label {
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+
+  .switch {
+    display: inline-flex;
+    padding: 3px;
+    gap: 3px;
+    background: var(--sunken);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+  }
+
+  .switch button {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.88rem;
+    font-weight: 500;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+  }
+
+  .switch button[aria-pressed='true'] {
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.07);
+  }
+
+  .switch button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .skip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.93rem;
+    font-weight: 500;
+    line-height: 1.3;
+    transition: border-color 120ms ease, background-color 120ms ease;
+  }
+
+  .skip .skip-lead { color: var(--muted); }
+  .skip .skip-go { font-weight: 700; color: var(--accent); }
+  .skip:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .skip:hover .skip-lead { color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skip, .switch button { transition: none; }
+  }
+
+  /* app path shows by default; terminal path is revealed by the switch.
+     `revert` restores each element's own default display, so the same pair of
+     classes works on block wrappers and on inline spans mid-sentence. */
+  .for-terminal { display: none; }
+  .page[data-surface='terminal'] .for-terminal { display: revert; }
+  .page[data-surface='terminal'] .for-app { display: none; }
+
+  /* ---------- needs strip ---------- */
+
+  .needs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: clamp(2.5rem, 6vw, 3.5rem) 0 0;
+  }
+
+  .needs div {
+    background: var(--surface);
+    padding: 1.15rem 1.25rem;
+  }
+
+  .needs dt {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 0.35rem;
+  }
+
+  .needs dd {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  /* ---------- steps ---------- */
+
+  .steps {
+    counter-reset: step;
+    margin-top: clamp(3rem, 8vw, 5rem);
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3rem, 7vw, 4.5rem);
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr;
+    gap: 0 1.5rem;
+    align-items: start;
+    scroll-margin-top: 2rem;
+  }
+
+  .numeral {
+    counter-increment: step;
+    font-size: 3.75rem;
+    font-weight: 800;
+    line-height: 0.85;
+    color: var(--numeral);
+    letter-spacing: -0.04em;
+    user-select: none;
+  }
+
+  .numeral::before { content: counter(step, decimal-leading-zero); }
+
+  .step-body { min-width: 0; }
+
+  .step h2 {
+    font-size: clamp(1.4rem, 3.6vw, 1.75rem);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin: 0.35rem 0 0.85rem;
+  }
+
+  .step p { margin: 0 0 1rem; max-width: 62ch; }
+  .step p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 34rem) {
+    .step { grid-template-columns: 1fr; gap: 0; }
+    .numeral { font-size: 2.5rem; margin-bottom: 0.25rem; }
+  }
+
+  /* ---------- type-this block ---------- */
+
+  .type-this {
+    margin: 1.4rem 0;
+    border-radius: 4px;
+    overflow: hidden;
+    background: var(--terminal-bg);
+  }
+
+  .type-this .btn-label {
+    display: block;
+    padding: 0.6rem 1rem 0;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--terminal-dim);
+  }
+
+  .type-this pre {
+    margin: 0;
+    padding: 0.5rem 1rem 1rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+    font-size: 0.92rem;
+    line-height: 1.7;
+    color: var(--terminal-ink);
+    -webkit-font-smoothing: auto;
+    white-space: pre-wrap;
+  }
+
+  .type-this pre .cue { color: var(--terminal-dim); }
+
+  code {
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+    font-size: 0.86em;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.12em 0.36em;
+    border-radius: 3px;
+    word-break: break-word;
+  }
+
+  /* ---------- aside note ---------- */
+
+  .note {
+    border-left: 2px solid var(--note);
+    background: var(--note-soft);
+    padding: 0.85rem 1.1rem;
+    margin: 1.4rem 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--ink);
+    border-radius: 0 3px 3px 0;
+  }
+
+  .note strong { color: var(--note); }
+  .note p { margin: 0; max-width: none; }
+
+  /* ---------- questions list ---------- */
+
+  .asks {
+    margin: 1.4rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-width: 60ch;
+  }
+
+  .asks li {
+    position: relative;
+    padding-left: 1.4rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .asks li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 0.6rem;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  /* ---------- say-this section ---------- */
+
+  .divider {
+    margin: clamp(3.5rem, 9vw, 5.5rem) 0 0;
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .after { margin-top: clamp(2.5rem, 6vw, 3.5rem); }
+
+  .after h2 {
+    font-size: clamp(1.6rem, 4.5vw, 2.1rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+    text-wrap: balance;
+    margin: 0 0 0.9rem;
+  }
+
+  .after > p { max-width: 62ch; margin: 0 0 1.75rem; }
+
+  .say {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .say li {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 14px 14px 14px 3px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    line-height: 1.45;
+    max-width: 34rem;
+  }
+
+  .say li::before { content: '“'; color: var(--accent); }
+  .say li::after { content: '”'; color: var(--accent); }
+
+  /* ---------- trouble ---------- */
+
+  .trouble { margin-top: clamp(3rem, 7vw, 4rem); }
+
+  .trouble h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: 0 0 1.25rem;
+  }
+
+  .trouble dl {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    max-width: 62ch;
+  }
+
+  .trouble dt {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .trouble dd {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.97rem;
+    line-height: 1.55;
+  }
+
+  footer {
+    margin-top: clamp(3.5rem, 8vw, 5rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    color: var(--faint);
+    font-size: 0.9rem;
+  }
+
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+</style>
+
+<div class="page" id="page" data-surface="app">
+  <header>
+    <p class="eyebrow">Grimoire &middot; App Builder</p>
+    <h1>Make your first app</h1>
+    <p class="standfirst">
+      Four steps, about ten minutes of setup, and then you just describe what you want.
+      No coding, and nothing here you can break.
+    </p>
+
+    <div class="switch-row">
+      <span class="switch-label" id="switch-label">You're using&hellip;</span>
+      <div class="switch" role="group" aria-labelledby="switch-label">
+        <button type="button" data-surface="app" aria-pressed="true">The Claude app</button>
+        <button type="button" data-surface="terminal" aria-pressed="false">The terminal</button>
+      </div>
+    </div>
+
+    <a class="skip" href="#start">
+      <span class="skip-lead">Already set up?</span>
+      <span class="skip-go">Start an app &rarr;</span>
+    </a>
+  </header>
+
+  <dl class="needs">
+    <div>
+      <dt>You'll need</dt>
+      <dd>A Mac or PC, and about 40 minutes for your first app.</dd>
+    </div>
+    <div>
+      <dt>You won't need</dt>
+      <dd>Any coding experience, or to understand a single technical word.</dd>
+    </div>
+    <div>
+      <dt>You'll end up with</dt>
+      <dd>A real, working app running on your computer that you can keep changing.</dd>
+    </div>
+  </dl>
+
+  <div class="steps">
+    <!-- ============ STEP 1 ============ -->
+    <section class="step">
+      <span class="numeral" aria-hidden="true"></span>
+      <div class="step-body">
+        <h2>Get Claude Code onto your computer</h2>
+
+        <div class="for-app">
+          <p>
+            Claude Code is the assistant that does the building. Download the app from
+            <a href="https://claude.com/claude-code">claude.com/claude-code</a>, install
+            it like any other program, and sign in with your Claude account.
+          </p>
+          <p>
+            Open the <strong>Code</strong> tab and start a new session. It'll ask which
+            folder to work in &mdash; make a new empty one somewhere you'll remember,
+            like a folder called <em>Apps</em> in your Documents. You'll get a chat box.
+            That's where everything from here happens.
+          </p>
+          <div class="note">
+            <p>
+              <strong>Keep it local.</strong> If the app offers to run your session in
+              the cloud, say no for this. A cloud session runs on Anthropic's computers,
+              not yours &mdash; your app wouldn't open on your own machine.
+            </p>
+          </div>
+        </div>
+
+        <div class="for-terminal">
+          <p>
+            Claude Code is the assistant that does the building. In the terminal it lives
+            in a plain text window where you type instead of click. It looks intimidating
+            and isn't; you'll only ever type whole sentences into it.
+          </p>
+          <p>
+            Install it from
+            <a href="https://claude.com/claude-code">claude.com/claude-code</a>, then open
+            the Terminal app (Mac: press <code>&#8984; Space</code>, type "Terminal", hit
+            Enter &mdash; Windows: search for "Terminal" in the Start menu) and type:
+          </p>
+          <div class="type-this">
+            <span class="btn-label">Type this, then press Enter</span>
+            <pre>claude</pre>
+          </div>
+          <p>
+            You'll be asked to sign in with your Claude account. Once you see a prompt
+            waiting for you, you're in &mdash; and every step from here happens in this
+            same window.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 2 ============ -->
+    <section class="step">
+      <span class="numeral" aria-hidden="true"></span>
+      <div class="step-body">
+        <h2>Connect the Grimoire library</h2>
+        <p>
+          Grimoire is a shared shelf of tools our team has built for Claude. Connecting to
+          it is a one-off &mdash; you never do this again.
+        </p>
+
+        <div class="for-app">
+          <p>Type this into the chat box, exactly as it reads, and press Enter:</p>
+          <div class="type-this">
+            <span class="btn-label">Type this into the chat box</span>
+            <pre>Add the Grimoire plugin marketplace to my Claude settings — it's the GitHub repo odyssey-core/grimoire</pre>
+          </div>
+          <p>
+            Claude will edit its own settings file and tell you when it's done. It may ask
+            permission to change the file &mdash; say yes. Then <strong>quit the app and
+            open it again</strong> so it picks up the new library.
+          </p>
+        </div>
+
+        <div class="for-terminal">
+          <div class="type-this">
+            <span class="btn-label">Type this, then press Enter</span>
+            <pre>/plugin marketplace add odyssey-core/grimoire</pre>
+          </div>
+          <p>
+            The <code>/</code> at the start matters. Claude will confirm the library is
+            connected.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 3 ============ -->
+    <section class="step">
+      <span class="numeral" aria-hidden="true"></span>
+      <div class="step-body">
+        <h2>Install the app builder</h2>
+        <p>Now take the tool that builds apps off the shelf.</p>
+
+        <div class="for-app">
+          <p>
+            Click the <strong>+</strong> button next to the chat box, choose
+            <strong>Plugins</strong>, then <strong>Add plugin</strong>. Find
+            <strong>app-builder</strong> in the list and install it. When it asks where,
+            choose <strong>user</strong> &mdash; that makes it available everywhere on
+            your computer, not just in this one folder.
+          </p>
+          <p>If you'd rather not hunt through menus, just ask instead:</p>
+          <div class="type-this">
+            <span class="btn-label">Type this into the chat box</span>
+            <pre>Install the app-builder plugin from grimoire, for my whole user account</pre>
+          </div>
+        </div>
+
+        <div class="for-terminal">
+          <div class="type-this">
+            <span class="btn-label">Type this, then press Enter</span>
+            <pre>/plugin install app-builder@grimoire</pre>
+          </div>
+          <p>
+            You'll be asked where to install it. Choose <strong>user</strong> &mdash; that
+            makes it available everywhere on your computer, not just in one folder.
+          </p>
+        </div>
+
+        <div class="note">
+          <p>
+            <strong>That's the setup done.</strong> Steps 1&ndash;3 are once and for all.
+            Every future app starts at step 4.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ STEP 4 ============ -->
+    <section class="step" id="start">
+      <span class="numeral" aria-hidden="true"></span>
+      <div class="step-body">
+        <h2>Start your first app</h2>
+        <p>
+          <span class="for-app">With Claude Code open, tell it</span
+          ><span class="for-terminal">With Claude Code open in your terminal, tell it</span>
+          what you're doing, in your own words:
+        </p>
+        <div class="type-this">
+          <span class="btn-label">Type this, then press Enter</span>
+          <pre>build me an app<span class="cue">
+
+or, if you prefer the exact command:</span>
+/app-builder:new-app</pre>
+        </div>
+        <p>
+          Claude will ask you what to call it, then walk you through about eight
+          questions. They're all plain English, and none of them are about technology:
+        </p>
+        <ul class="asks">
+          <li>What does your app do, and what problem does it solve?</li>
+          <li>Who's going to use it? Picture one specific person.</li>
+          <li>When someone opens it on a normal day, what did they come to do?</li>
+          <li>Do people sign in with their own account?</li>
+          <li>What are the main things it needs to remember?</li>
+          <li>How should it look &mdash; and is there a colour you want it built around?</li>
+        </ul>
+        <p style="margin-top:1.25rem">
+          Answer honestly and roughly &mdash; "I don't know yet" is a fine answer, and
+          Claude will pick something sensible. When it's got enough, it reads your plan
+          back to you in plain English and waits for you to say go.
+        </p>
+        <p>
+          Then it builds. Somewhere between fifteen and thirty-five minutes later, you'll
+          get a web address like <code>http://localhost:5173</code>. Paste it into your
+          browser, make yourself an account, and there's your app.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <hr class="divider">
+
+  <section class="after">
+    <h2>Now just talk to it</h2>
+    <p>
+      This is the part people don't quite believe until they try it. Your app isn't
+      finished &mdash; it's started. To change anything, describe the change the way you'd
+      describe it to a person sitting next to you:
+    </p>
+    <ul class="say">
+      <li>Add a notes box to each entry</li>
+      <li>Make the buttons green instead of blue</li>
+      <li>I want to see how many I did this week at the top</li>
+      <li>Let me upload a photo with each one</li>
+      <li>The sign-up page is confusing &mdash; simplify it</li>
+    </ul>
+    <p style="margin:1.75rem 0 0">
+      Claude makes the change, checks the app still works, and tells you what to refresh.
+      You never need to learn what any of it is called.
+    </p>
+  </section>
+
+  <section class="trouble">
+    <h2>If something doesn't go to plan</h2>
+    <dl>
+      <dt>It says <code>app-builder</code> can't be found</dt>
+      <dd>
+        <span class="for-app"
+          >The library list hasn't refreshed. Quit the app, open it again, and try step 3
+          once more. Still nothing? Ask Claude: "check whether the grimoire marketplace is
+          in my settings."</span
+        >
+        <span class="for-terminal"
+          >Type <code>/plugin marketplace update</code>, pick <strong>grimoire</strong>,
+          choose "Update marketplace", then try step 3 again.</span
+        >
+      </dd>
+
+      <dt>It asks you to install something first</dt>
+      <dd>
+        Most likely Node, a free piece of software the app runs on. Claude will give you
+        the link and wait. Download the big green <strong>LTS</strong> button, run the
+        installer, then restart Claude Code and say "I've installed it".
+      </dd>
+
+      <dt>The web address shows a wall of text instead of your app</dt>
+      <dd>
+        You've opened the wrong one. The app is the address ending in
+        <strong>5173</strong>, not 3000. Ask Claude "what's my app's address again?"
+      </dd>
+
+      <dt>The address won't open at all</dt>
+      <dd>
+        Check you're in a local session rather than a cloud one. Cloud sessions run on
+        Anthropic's computers, so <code>localhost</code> points at a machine that isn't
+        yours. Start a fresh local session and ask Claude to start your app again.
+      </dd>
+
+      <dt>Something looks broken and you don't know why</dt>
+      <dd>
+        Say so, in exactly those words. "Something looks broken" is a perfectly good bug
+        report &mdash; Claude can read the errors itself, and you don't have to.
+      </dd>
+
+      <dt>You closed everything and want your app back</dt>
+      <dd>
+        <span class="for-app"
+          >Open Claude Code, start a session in your app's folder, and say "start my
+          app".</span
+        >
+        <span class="for-terminal"
+          >Open your terminal, type <code>cd</code> then a space, drag your app's folder
+          onto the window, press Enter, type <code>claude</code>, and then say "start my
+          app".</span
+        >
+      </dd>
+    </dl>
+  </section>
+
+  <footer>
+    Built on the MERN template &mdash; the same stack we use for real production work, so
+    the app you make on day one is one you can actually launch.
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var page = document.getElementById('page');
+    var buttons = document.querySelectorAll('.switch button');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var choice = btn.dataset.surface;
+        page.dataset.surface = choice;
+        buttons.forEach(function (b) {
+          b.setAttribute('aria-pressed', String(b.dataset.surface === choice));
+        });
+      });
+    });
+  })();
+</script>

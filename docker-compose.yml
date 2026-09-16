@@ -12,6 +12,25 @@ services:
       timeout: 5s
       retries: 5
 
+  # Opt-in: `docker compose --profile postgres up`
+  postgres:
+    image: postgres:17-alpine
+    profiles: [postgres]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-template}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-template}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -19,6 +38,9 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      postgres:
+        condition: service_healthy
+        required: false
     environment:
       NODE_ENV: production
       PORT: 3000
@@ -27,6 +49,47 @@ services:
       JWT_EXPIRE: 7d
       FRONTEND_URL: http://localhost:8080
       LOG_LEVEL: info
+      # Empty by default → Postgres stays off. Set these to turn it on.
+      POSTGRES_URL: ${POSTGRES_URL:-}
+      POSTGRES_HOST: ${POSTGRES_HOST:-}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-}
+      POSTGRES_USER: ${POSTGRES_USER:-}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+      POSTGRES_SSL: ${POSTGRES_SSL:-disable}
+      # Empty by default → S3 stays off. Set AWS_S3_BUCKET to turn it on.
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET:-}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-}
+      AWS_S3_FORCE_PATH_STYLE: ${AWS_S3_FORCE_PATH_STYLE:-false}
+      AWS_S3_PUBLIC_URL: ${AWS_S3_PUBLIC_URL:-}
+      AWS_S3_ACL: ${AWS_S3_ACL:-}
+      AWS_S3_PRESIGN_EXPIRES: ${AWS_S3_PRESIGN_EXPIRES:-900}
+      AWS_S3_MAX_UPLOAD_MB: ${AWS_S3_MAX_UPLOAD_MB:-100}
+      # Empty by default → email is logged, not sent. Set RESEND_API_KEY to send.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-Template <onboarding@resend.dev>}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      EMAIL_DRY_RUN: ${EMAIL_DRY_RUN:-false}
+      EMAIL_TIMEOUT_MS: ${EMAIL_TIMEOUT_MS:-10000}
+      EMAIL_MAX_ATTEMPTS: ${EMAIL_MAX_ATTEMPTS:-3}
+      APP_NAME: ${APP_NAME:-Template}
+      # Empty by default → the /api/ai routes are not mounted.
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-opus-5}
+      ANTHROPIC_MAX_TOKENS: ${ANTHROPIC_MAX_TOKENS:-16000}
+      ANTHROPIC_EFFORT: ${ANTHROPIC_EFFORT:-high}
+      ANTHROPIC_SYSTEM_PROMPT: ${ANTHROPIC_SYSTEM_PROMPT:-}
+      ANTHROPIC_REFUSAL_FALLBACK: ${ANTHROPIC_REFUSAL_FALLBACK:-true}
+      AI_RATE_LIMIT_PER_HOUR: ${AI_RATE_LIMIT_PER_HOUR:-60}
+      AUTH_PROVIDER: ${AUTH_PROVIDER:-better-auth}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-}
+      # The bundled mongo service is a standalone, which cannot do transactions.
+      BETTER_AUTH_DB_TRANSACTIONS: ${BETTER_AUTH_DB_TRANSACTIONS:-false}
     ports:
       - '3000:3000'
 
@@ -43,3 +106,4 @@ services:
 
 volumes:
   mongo-data:
+  postgres-data:

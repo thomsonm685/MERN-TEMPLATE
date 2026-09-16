@@ -1,8 +1,16 @@
+/**
+ * LEGACY — signup/login/me for the original JWT auth system.
+ *
+ * Only mounted when AUTH_PROVIDER=jwt. Better Auth serves /api/auth otherwise; see
+ * `src/auth/`. Kept so switching back is a one-line env change.
+ */
 import type { RequestHandler } from 'express';
 import User from '../models/User.js';
 import { generateToken } from '../middleware/auth.js';
 import { successResponse, errorResponse } from '../utils/helpers.js';
+import { emailTriggers } from '../email/index.js';
 
+/** @deprecated LEGACY — active only when AUTH_PROVIDER=jwt. */
 export const signup: RequestHandler = async (req, res) => {
   const { email, password, firstName, lastName } = req.body as {
     email: string;
@@ -20,6 +28,10 @@ export const signup: RequestHandler = async (req, res) => {
   const user = await User.create({ email, password, firstName, lastName });
   const token = generateToken(user._id.toString());
 
+  // Fire-and-forget: the account already exists, so a mail failure must not fail the request.
+  // Triggers never throw and log their own errors. Without RESEND_API_KEY this just logs.
+  void emailTriggers.userRegistered({ email: user.email, firstName: user.firstName });
+
   res.status(201).json(
     successResponse(
       {
@@ -36,6 +48,7 @@ export const signup: RequestHandler = async (req, res) => {
   );
 };
 
+/** @deprecated LEGACY — active only when AUTH_PROVIDER=jwt. */
 export const login: RequestHandler = async (req, res) => {
   const { email, password } = req.body as { email: string; password: string };
 
@@ -70,6 +83,7 @@ export const login: RequestHandler = async (req, res) => {
   );
 };
 
+/** @deprecated LEGACY — active only when AUTH_PROVIDER=jwt. */
 export const getMe: RequestHandler = async (req, res) => {
   const user = await User.findById(req.user!._id);
   if (!user) {

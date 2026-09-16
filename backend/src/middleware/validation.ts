@@ -29,6 +29,18 @@ export const updateProfileValidation = [
   body('email').optional().isEmail().normalizeEmail().withMessage('Valid email is required'),
 ];
 
+export const askValidation = [
+  body('messages')
+    .isArray({ min: 1, max: 100 })
+    .withMessage('messages must be an array of 1-100 turns'),
+  body('messages.*.role').isIn(['user', 'assistant']).withMessage('role must be user or assistant'),
+  body('messages.*.content').notEmpty().withMessage('Each message needs content'),
+  body('system').optional().isString().isLength({ max: 20000 }),
+  // Capped well under the model's 128k ceiling; raise deliberately, and stream when you do.
+  body('maxTokens').optional().isInt({ min: 1, max: 32000 }).toInt(),
+  body('effort').optional().isIn(['low', 'medium', 'high', 'xhigh', 'max']),
+];
+
 export const updateSettingsValidation = [
   body('themePreference').isIn(['light', 'dark']).withMessage('Theme must be light or dark'),
 ];

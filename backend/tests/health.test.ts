@@ -4,6 +4,9 @@ vi.stubEnv('NODE_ENV', 'test');
 vi.stubEnv('MONGODB_URI', 'mongodb://localhost:27017/template-test');
 vi.stubEnv('JWT_SECRET', 'this-is-a-thirty-two-char-secret-x');
 vi.stubEnv('LOG_LEVEL', 'fatal');
+// Pins the legacy provider so this suite keeps proving the JWT fallback still works.
+// Better Auth is covered end-to-end against a real database in auth.test.ts.
+vi.stubEnv('AUTH_PROVIDER', 'jwt');
 
 const { createApp } = await import('../src/app.js');
 const request = (await import('supertest')).default;
@@ -23,7 +26,7 @@ describe('app smoke', () => {
     expect(res.body).toMatchObject({ success: false, error: { code: 'NOT_FOUND' } });
   });
 
-  it('protected route without token returns 401', async () => {
+  it('legacy protected route without token returns 401', async () => {
     const res = await request(app).get('/api/auth/me');
     expect(res.status).toBe(401);
     expect(res.body).toMatchObject({ success: false, error: { code: 'UNAUTHORIZED' } });

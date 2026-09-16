@@ -1,3 +1,12 @@
+/**
+ * LEGACY — the template's original hand-rolled JWT auth.
+ *
+ * Better Auth replaced this (see `src/auth/`). Everything here is kept, working and wired,
+ * so `AUTH_PROVIDER=jwt` switches back with no code changes. Delete this file, the legacy
+ * controller and route, and the AUTH_PROVIDER branch in app.ts to remove it for good.
+ *
+ * New routes should use `requireAuth` from `src/auth/index.js`, not `protect`.
+ */
 import type { RequestHandler } from 'express';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import { env } from '../config/env.js';
@@ -25,6 +34,7 @@ function extractBearerToken(header: string | undefined): string | null {
   return header.slice(7).trim() || null;
 }
 
+/** @deprecated LEGACY — use `requireAuth` from `src/auth/index.js`. */
 export const protect: RequestHandler = async (req, res, next) => {
   const token = extractBearerToken(req.headers.authorization);
   if (!token) {
@@ -46,6 +56,7 @@ export const protect: RequestHandler = async (req, res, next) => {
   }
 };
 
+/** @deprecated LEGACY — use `requireAuth` from `src/auth/index.js`. */
 export const adminProtect: RequestHandler = (req, res, next) => {
   const token = extractBearerToken(req.headers.authorization);
   if (!token) {
@@ -66,11 +77,13 @@ export const adminProtect: RequestHandler = (req, res, next) => {
   }
 };
 
+/** @deprecated LEGACY — Better Auth issues its own session cookies. */
 export function generateToken(userId: string): string {
   const options: SignOptions = { expiresIn: env.JWT_EXPIRE as SignOptions['expiresIn'] };
   return jwt.sign({ id: userId } satisfies UserTokenPayload, env.JWT_SECRET, options);
 }
 
+/** @deprecated LEGACY */
 export function generateAdminToken(): string {
   const options: SignOptions = { expiresIn: env.JWT_EXPIRE as SignOptions['expiresIn'] };
   return jwt.sign(

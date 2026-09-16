@@ -7,3 +7,4 @@ coverage
 .git
 *.log
 .DS_Store
+.devdata
