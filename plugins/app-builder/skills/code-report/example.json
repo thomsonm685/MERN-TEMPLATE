@@ -1,0 +1,91 @@
+{
+  "status": "applied",
+  "title": "Code Report - agents",
+  "subtitle": "Undeclared subagent removed. Two deepagents wiring fixes found by auditing our stack against the docs; nothing Everstream or MODUS Command can observe changes.",
+  "repo": "agents",
+  "branch": "master",
+  "commit": "66426c4",
+  "pushed": false,
+  "deployed": false,
+  "changes": [
+    {
+      "file": "core/builder.py",
+      "lines": "60-120",
+      "surface": "server code",
+      "what": "Register a harness profile per provider that disables the auto-added `general-purpose` subagent.",
+      "why": "deepagents adds it to every graph unless the profile says otherwise, and the `task` tool is bound whenever the subagent list is non-empty - so all ten MODUS agents compiled with a task tool and an agent we never declared behind it. The only thing holding traffic off it was a prompt line at authority level 8.",
+      "code_label": "added",
+      "code": "HARNESS_PROVIDERS = (\"anthropic\", \"openai\")\n\ndef _disable_general_purpose_subagent() -> None:\n    for provider in HARNESS_PROVIDERS:\n        register_harness_profile(\n            provider,\n            HarnessProfile(\n                general_purpose_subagent=GeneralPurposeSubagentProfile(enabled=False)\n            ),\n        )\n\n_disable_general_purpose_subagent()"
+    },
+    {
+      "file": "core/builder.py",
+      "lines": "341",
+      "surface": "server code",
+      "what": "Pass `add_cache_control=True` to our MemoryMiddleware.",
+      "why": "The constructor defaults it to False while deepagents' own tail instance passes True, so replacing their instance silently dropped the Anthropic cache breakpoint at the end of the largest static block in every request. It tags one block and only for ChatAnthropic, so it is a true no-op on the openai: adapters.",
+      "before": [
+        "MemoryMiddleware(",
+        "    backend=backend,",
+        "    sources=memory_sources,",
+        "    system_prompt=AGENT_MEMORY_PROMPT,",
+        ")"
+      ],
+      "after": [
+        "MemoryMiddleware(",
+        "    backend=backend,",
+        "    sources=memory_sources,",
+        "    system_prompt=AGENT_MEMORY_PROMPT,",
+        "    add_cache_control=True,",
+        ")"
+      ]
+    },
+    {
+      "file": "tests/test_isolation.py",
+      "lines": "415-595",
+      "surface": "tests",
+      "what": "Three tests: no agent has a `task` tool, a router still does, and memory carries the cache breakpoint.",
+      "why": "Nothing anywhere asserted on the tool surface, so the hole had no guard. These compile a real graph and read its bound tools rather than checking the registration ran - `deepagents.profiles` is beta, and if the API moves the registration becomes a silent no-op that a call-site check would still pass.",
+      "code_label": "added, three tests",
+      "code": [
+        "def test_no_agent_exposes_a_task_tool(agent_names):",
+        "    for name in agent_names:",
+        "        tools = compile_agent(name).get_graph().bound_tools",
+        "        assert \"task\" not in {t.name for t in tools}, name",
+        "",
+        "def test_router_still_exposes_task():",
+        "    tools = compile_agent(\"router\").get_graph().bound_tools",
+        "    assert \"task\" in {t.name for t in tools}",
+        "",
+        "def test_memory_block_carries_cache_control():",
+        "    blocks = render_system_blocks(compile_agent(\"router\"))",
+        "    assert blocks[-1][\"cache_control\"] == {\"type\": \"ephemeral\"}"
+      ]
+    }
+  ],
+  "verification": [
+    "Mutation-checked: disabling the registration fails only the agent test and leaves the router test green; dropping `add_cache_control` fails only the memory test.",
+    "Measured on the real MODUS workspace - all ten agents had `task` before, none after, router unchanged at `task=True` with 6 subagents.",
+    "Full suite A/B: 813 passed on HEAD, 817 with these changes, the same 5 pre-existing `athlete-schedule` failures either side.",
+    "The all-models test was circular in its first form (it derived the providers to check from the constant under test, so the mutation passed). It states them itself now and fails both mutations."
+  ],
+  "risk": [
+    "Nothing outside the agents server couples to this: the three backend hits for \"subagent\" are comments on observability records, and no response schema is derived from a tool list.",
+    "Only real behavioural risk was an agent quietly using the subagent in spite of the prompt. Across seven LangSmith exports carrying 1060 `tool_calls` records there is not one `task` call or `general-purpose` delegation - a sample, not the whole history.",
+    "Needs an image rebuild to take effect. Server code, not a prompt reload."
+  ],
+  "deferred": [
+    {
+      "item": "interrupt_on for destructive ops",
+      "why": "Returns `__interrupt__` and pauses a run MODUS Command's client cannot resume. Needs their involvement."
+    },
+    {
+      "item": "response_format on subagents",
+      "why": "Highest-value item, but needs a per-agent schema decision and agent.yaml edits that belong in the UI."
+    },
+    {
+      "item": "deepagents 0.7.8 -> 0.7.26",
+      "why": "The upgrade that retires the _WithUserMessage backport and gives typed subagent streaming. Eighteen releases; needs its own window and a replay."
+    }
+  ],
+  "footer": "Local and unpushed. Michael pushes."
+}

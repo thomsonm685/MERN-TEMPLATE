@@ -5,64 +5,84 @@ the one sentence that tells them what _they_ need to do, if anything.
 
 ---
 
-## No database
+## The databases won't start
 
-The most common blocker, and the one to catch in Phase 0 before they've invested time.
+`cd backend && npm run db` starts real MongoDB and Postgres binaries as child processes.
+Nothing is installed, so most failures here are a port, a download, or a stale data
+directory — not a missing database.
 
-### Option A — something is already listening on 27017 _(best)_
+### A port is already in use
+
+```
+✖ MongoDB port 27017 is already in use.
+```
+
+The script refuses to half-start, which is correct. Find what's holding it:
 
 ```bash
-nc -z localhost 27017 && echo OPEN
+lsof -ti:27017    # or :5432 for Postgres
 ```
 
-Use `mongodb://localhost:27017/<slug>`. Nothing to install. Done.
+| What's holding it                              | Fix                                                                                                |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Another project's `npm run db`                 | Use it. Point this app's `.env` at the same server — the database _name_ keeps the data apart.     |
+| A Homebrew `mongodb-community` or `postgresql` | Also fine. Leave it running and skip the script's copy: `npm run db -- --postgres` (or `--mongo`). |
+| Docker (`docker ps`)                           | Either stop the container or skip that engine as above.                                            |
+| Nothing recognisable                           | Change the port in `backend/.env`, then `npm run db:reset` — see the next item.                    |
 
-### Option B — Docker is running
+### "not running with --replSet" or Mongo won't come up after a port change
 
-The template's `docker-compose.yml` already defines a `mongo` service.
+The replica-set config and the Mongo port are baked into `backend/.devdata` on first run.
+Change the port afterwards and that directory is stale.
 
 ```bash
-cd <project> && docker compose up -d mongo
-# wait for it
-for i in $(seq 1 30); do nc -z localhost 27017 && break; sleep 1; done
+cd backend && npm run db:reset && npm run db
 ```
 
-Use `mongodb://localhost:27017/<slug>`. Mention once: _"I started the database — it'll
-keep running in the background."_
+That deletes local development data. Say so first if they've entered anything real.
 
-### Option C — MongoDB Atlas free tier _(no install, works everywhere)_
+### The binary download fails
 
-Best fallback for a non-technical person on a fresh machine. Walk them through it in
-plain language, one step at a time:
+First run ever fetches MongoDB (~75 MB) into `node_modules/.cache/mongodb-binaries`.
+Postgres came down with `npm install`.
 
-1. _"Go to <https://www.mongodb.com/cloud/atlas/register> and make a free account."_
-2. _"Create a free cluster — pick the **M0 Free** option and just accept the defaults."_
-3. _"It'll ask you to make a database user. Pick any username and password, and **save
-   the password somewhere** — I'll need it in a second."_
-4. _"Under Network Access, click 'Allow access from anywhere'."_
-5. _"Hit Connect → Drivers, and paste me the line that starts with `mongodb+srv://`."_
+- **Offline or a corporate proxy** → retry once, then set a mirror in `backend/.env`:
+  `MONGOMS_DOWNLOAD_MIRROR=https://fastdl.mongodb.org`.
+- **An unsupported platform build** → point it at an installed `mongod` instead:
+  `MONGOMS_SYSTEM_BINARY=/usr/local/bin/mongod`.
+- **Postgres binary missing from `node_modules`** → the backend install didn't finish.
+  `cd backend && npm install`.
 
-Then assemble the URI yourself — swap in their password and add the database name before
-the `?`:
+### Postgres is running but the app ignores it
+
+The script says so explicitly:
 
 ```
-mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<slug>?retryWrites=true&w=majority
+  Postgres is running but the app ignores it until .env has:
+    POSTGRES_HOST=127.0.0.1
+    ...
 ```
 
-If their password contains `@ : / ? # [ ] %`, URL-encode it or it will silently fail to
-connect. Safest to ask for a password with letters and numbers only.
+Write all five `POSTGRES_*` lines into `backend/.env` (see `workflow/4-databases.md`) and
+restart the backend. Setting only some of `HOST`/`DB`/`USER` is a deliberate boot error,
+not a fallback.
 
-### Option D — install MongoDB locally (Mac, Homebrew)
+### Last resorts
 
-```bash
-brew tap mongodb/brew && brew install mongodb-community
-brew services start mongodb-community
-```
+Only if the embedded servers genuinely can't run on their machine:
 
-Only suggest this if they already have Homebrew — installing Homebrew is a big ask for
-someone non-technical.
+- **Docker** — `docker compose up -d mongo`, and `docker compose --profile postgres up -d`
+  for Postgres. Then `MONGODB_URI=mongodb://localhost:27017/<slug>`.
+- **MongoDB Atlas free tier** — a browser signup, so it's a last resort for a
+  non-technical person, not a first step. Walk them through
+  <https://www.mongodb.com/cloud/atlas/register>, a free M0 cluster, a database user, and
+  **Network Access → Allow access from anywhere**. Their connection string needs the slug
+  inserted as the database name before the `?`:
+  `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<slug>?retryWrites=true&w=majority`.
+  URL-encode any `@ : / ? # [ ] %` in the password. `npm run db` detects the remote host
+  and skips starting a local Mongo rather than shadowing it.
 
----
+Never send someone to a signup page before trying `npm run db`.
 
 ## Node is missing or too old
 
@@ -84,7 +104,7 @@ Read the background output yourself. In order of likelihood:
 | ------------------------------------------------------- | ------------------------------- | -------------------------------------------------------------------------- |
 | `Invalid environment variables: { JWT_SECRET: [...] }`  | Secret shorter than 32 chars    | Regenerate: `openssl rand -hex 32`                                         |
 | `Invalid environment variables: { MONGODB_URI: [...] }` | Not a valid URL                 | Check for a missing `mongodb://` prefix or an unencoded password character |
-| `MongoDB connection failed` then exit                   | Database not reachable          | Back to "No database" above                                                |
+| `MongoDB connection failed` then exit                   | Database not reachable          | Is `npm run db` still running? See "The databases won't start" above       |
 | `ERR_MODULE_NOT_FOUND` naming one of your files         | A relative import missing `.js` | Add the extension. `npm run typecheck` finds all of them                   |
 | `EADDRINUSE :::3000`                                    | Something already on port 3000  | See "Port already in use"                                                  |
 
@@ -160,7 +180,9 @@ a red test behind, and don't weaken an assertion just to make it pass.
 
 ## They want to stop or restart everything
 
-- **Stop:** kill the two background dev servers. If Docker started Mongo,
-  `docker compose stop mongo` — but leaving it running is harmless.
+- **Stop:** kill the two background dev servers, and the `npm run db` process if they
+  want the storage down too (leaving it running is harmless).
+- **The databases are a long-lived process.** They die on reboot. If the app stops loading
+  after a restart, `cd backend && npm run db` before debugging anything else.
 - **Restart later:** open the project folder in Claude Code and say "start my app" —
   `CLAUDE.md` tells the next session exactly which two commands to run.

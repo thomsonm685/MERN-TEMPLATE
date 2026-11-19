@@ -1,7 +1,7 @@
 {
   "name": "app-builder",
-  "version": "1.0.0",
-  "description": "Guides a non-technical person from an idea to a running app: asks plain-English questions, scaffolds a production-ready MERN stack from the MERN-TEMPLATE repo, installs everything, builds v1, and starts it locally.",
+  "version": "2.1.0",
+  "description": "Takes a non-technical person from an idea to a ready-to-build project: asks plain-English questions, installs the MERN template, writes their answers into the six spec sheets, starts a local MongoDB and Postgres that need no installing, and offers to build v1. Ships two more skills: code-report for a readable record of every change, and app-docs for a Stripe-style reference site for the finished app.",
   "author": {
     "name": "thomsonm685"
   }

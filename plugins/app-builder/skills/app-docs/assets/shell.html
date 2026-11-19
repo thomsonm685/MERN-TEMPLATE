@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<meta name="description" content="__DESCRIPTION__">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+
+/* MODUS API reference - design tokens measured from the Stripe API docs. */
+
+:root {
+  --font-sans: -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Ubuntu, sans-serif;
+  --font-mono: "Source Code Pro", Menlo, Monaco, Consolas, monospace;
+
+  --text-heading: #1a2c44;
+  --text-body:    #3c4257;
+  --text-muted:   #50617a;
+  --text-faint:   #8792a2;
+
+  --brand:        #533afd;
+  --brand-soft:   #eeebff;
+  --accent-green: #217005;
+  --accent-rust:  #b13600;
+
+  --page-bg:   #f4f7fa;
+  --surface:   #ffffff;
+  --border:    #e3e8ee;
+  --border-soft:#eef1f6;
+
+  --code-bg:     #0e1a2b;
+  --code-bg-alt: #16243a;
+  --code-text:   #e6edf6;
+  --code-key:    #9ad6ff;
+  --code-str:    #a5e7b0;
+  --code-num:    #ffc48a;
+
+  --nav-w:  248px;
+  --rail-w: 620px;
+  --topbar-h: 56px;
+
+  --radius: 8px;
+  --shadow: 0 1px 2px rgba(26, 44, 68, .06), 0 2px 8px rgba(26, 44, 68, .04);
+}
+
+:root[data-theme="dark"] {
+  --text-heading: #f0f4fa;
+  --text-body:    #c3ccdb;
+  --text-muted:   #97a3b8;
+  --text-faint:   #78849a;
+
+  --brand:        #9c8bff;
+  --brand-soft:   #241f47;
+  --accent-green: #6fd35a;
+  --accent-rust:  #ff9b6a;
+
+  --page-bg:   #0b1220;
+  --surface:   #121b2c;
+  --border:    #26334a;
+  --border-soft:#1c2740;
+
+  --code-bg:     #060d18;
+  --code-bg-alt: #0d1626;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-body);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+code { font-family: var(--font-mono); font-size: .92em; }
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  background: var(--surface); color: var(--brand); padding: 10px 16px; border-radius: 0 0 var(--radius) 0;
+}
+.skip:focus { left: 0; }
+
+/* ------------------------- topbar ------------------------- */
+
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  height: var(--topbar-h);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand { display: flex; align-items: baseline; gap: 7px; font-weight: 700; color: var(--text-heading); }
+.brand:hover { text-decoration: none; }
+.brand-mark { font-size: 17px; letter-spacing: -.01em; }
+.brand-sub { font-size: 13px; font-weight: 600; color: var(--text-faint); }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+.search {
+  width: 230px; height: 32px;
+  padding: 0 12px;
+  font: inherit; font-size: 13px;
+  color: var(--text-body);
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.search:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-soft); }
+
+.theme-toggle, .nav-toggle {
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  color: var(--text-muted);
+  background: none; border: 1px solid transparent; border-radius: 6px;
+  cursor: pointer;
+}
+.theme-toggle:hover, .nav-toggle:hover { background: var(--page-bg); color: var(--text-heading); }
+.nav-toggle { display: none; }
+
+:root[data-theme="light"] .icon-moon { display: none; }
+:root[data-theme="dark"]  .icon-sun  { display: none; }
+
+/* ------------------------- layout ------------------------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--nav-w) minmax(0, 1fr) minmax(0, var(--rail-w));
+  align-items: start;
+  max-width: 1760px;
+  margin: 0 auto;
+}
+
+.sidebar {
+  position: sticky; top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 20px 8px 60px 16px;
+  border-right: 1px solid var(--border);
+  background: var(--page-bg);
+}
+
+.content {
+  min-width: 0;
+  padding: 32px 40px 80px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  min-height: calc(100vh - var(--topbar-h));
+}
+
+.rail {
+  position: sticky; top: var(--topbar-h);
+  max-height: calc(100vh - var(--topbar-h));
+  overflow-y: auto; overscroll-behavior: contain;
+  padding: 32px 24px 60px;
+}
+
+/* ------------------------- nav ------------------------- */
+
+.nav-list, .nav-sub { list-style: none; margin: 0; padding: 0; }
+
+.nav-link {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  font-size: 14px; font-weight: 400;
+  color: var(--text-muted);
+  border-radius: 6px;
+}
+.nav-link:hover { color: var(--text-heading); background: var(--border-soft); text-decoration: none; }
+.nav-link.is-active { color: var(--brand); font-weight: 500; background: var(--brand-soft); }
+.nav-link.is-parent { color: var(--text-heading); font-weight: 500; }
+
+.nav-group { margin-top: 22px; }
+
+.nav-group-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 5px 10px; margin-bottom: 4px;
+  font: inherit; font-size: 12px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
+  color: var(--text-faint);
+  background: none; border: 0; border-radius: 6px;
+  cursor: pointer;
+}
+.nav-group-hdr:hover { color: var(--text-heading); }
+.nav-group-hdr .chev { transition: transform .15s ease; }
+.nav-group-hdr[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+.nav-group-hdr[aria-expanded="false"] + .nav-list { display: none; }
+
+/* Endpoint children only unfurl for the active resource. */
+.nav-sub { display: none; margin: 2px 0 6px; padding-left: 12px; border-left: 1px solid var(--border); margin-left: 12px; }
+.nav-res.is-open > .nav-sub { display: block; }
+.nav-sublink { font-size: 13px; }
+
+.badge {
+  padding: 1px 5px;
+  font-size: 10px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase;
+  border-radius: 4px;
+  background: var(--border-soft); color: var(--text-faint);
+}
+.badge-preview    { background: #e6f0ff; color: #2b5fd9; }
+.badge-beta       { background: #fff3d9; color: #8a5a00; }
+.badge-deprecated { background: #ffe8e0; color: var(--accent-rust); }
+.badge-new        { background: #e2f7e4; color: var(--accent-green); }
+
+/* ------------------------- content ------------------------- */
+
+.doc { max-width: 720px; }
+
+.doc h1 {
+  margin: 0 0 12px;
+  font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -.01em;
+  color: var(--text-heading);
+}
+
+.section {
+  margin: 34px 0 14px;
+  padding-bottom: 8px;
+  font-size: 16px; font-weight: 600;
+  color: var(--text-heading);
+  border-bottom: 1px solid var(--border);
+}
+
+.doc p { margin: 0 0 12px; }
+.lede { margin-bottom: 8px; }
+.lede p:last-child { margin-bottom: 0; }
+
+.doc :not(pre) > code {
+  padding: 1px 4px;
+  font-size: 13px;
+  color: var(--text-heading);
+  background: var(--border-soft);
+  border-radius: 4px;
+}
+
+.endpoint-line { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; }
+.method { font-family: var(--font-mono); font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--accent-green); }
+.method-post { color: var(--accent-green); }
+.method-get { color: #1f6feb; }
+.method-delete { color: var(--accent-rust); }
+.method-patch, .method-put { color: #8a5a00; }
+.path { font-family: var(--font-mono); font-size: 14px; color: var(--text-heading); }
+
+.none { color: var(--text-faint); font-style: italic; }
+.returns p:last-child { margin-bottom: 0; }
+
+/* ------------------------- section anchors ------------------------- */
+
+/* The topbar is sticky, so an anchored heading would otherwise land under it. */
+.doc [id], .doc [data-anchor] { scroll-margin-top: calc(var(--topbar-h) + 16px); }
+
+.anchor-link {
+  margin-left: 8px;
+  font-family: var(--font-mono); font-size: .85em; font-weight: 400;
+  color: var(--text-faint);
+  opacity: 0; transition: opacity .12s ease;
+}
+.anchor-link:hover, .anchor-link:focus-visible { opacity: 1; text-decoration: none; color: var(--brand); }
+.section:hover .anchor-link, .f-head:hover .anchor-link { opacity: .55; }
+/* Keyboard users never hover, so focus alone has to reveal it. */
+.anchor-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 3px; }
+@media (hover: none) { .anchor-link { opacity: .55; } }
+
+.anchor-link.is-copied { opacity: 1; color: var(--accent-green); }
+
+/* A heading addressed by the current URL, so a shared link shows what it meant. */
+.doc .is-targeted {
+  background: var(--brand-soft);
+  box-shadow: -10px 0 0 var(--brand-soft), 10px 0 0 var(--brand-soft);
+  border-radius: 2px;
+  transition: background .4s ease, box-shadow .4s ease;
+}
+
+.toc-auto { margin-top: 4px; }
+.page-toc ul { list-style: none; margin: 0; padding: 0; }
+.page-toc li + li { margin-top: 4px; }
+.page-toc a { font-size: 13px; }
+
+/* ------------------------- fields ------------------------- */
+
+.fields > .field { padding: 16px 0; border-top: 1px solid var(--border-soft); }
+.fields > .field:first-child { border-top: 0; padding-top: 4px; }
+
+.f-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+
+.f-name { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--text-heading); }
+.f-type { font-size: 12px; color: var(--text-muted); }
+.f-flag {
+  padding: 1px 5px;
+  font-size: 11px; color: var(--text-faint);
+  background: var(--border-soft); border-radius: 4px;
+}
+.f-required { font-size: 12px; font-weight: 600; color: var(--accent-rust); }
+
+.f-desc p { margin: 0 0 8px; }
+.f-desc p:last-child { margin-bottom: 0; }
+.f-desc + .f-constraint { margin-top: 10px; }
+
+.f-constraint { margin: 10px 0 0; font-size: 13px; color: var(--text-muted); }
+
+.f-enum { margin-top: 10px; }
+.f-enum-label { display: block; margin-bottom: 6px; font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.f-enum-vals { display: flex; flex-wrap: wrap; gap: 6px; }
+.enum-val {
+  padding: 2px 6px;
+  font-size: 12px; color: var(--text-heading);
+  background: var(--border-soft); border: 1px solid var(--border); border-radius: 4px;
+}
+
+.f-children { margin-top: 12px; }
+.f-children > summary {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px;
+  font-size: 13px; font-weight: 500; color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 16px;
+  cursor: pointer; list-style: none;
+}
+.f-children > summary::-webkit-details-marker { display: none; }
+.f-children > summary:hover { color: var(--text-heading); border-color: var(--text-faint); }
+.f-children[open] > summary .plus { transform: rotate(45deg); }
+.plus { display: inline-block; font-size: 14px; line-height: 1; transition: transform .15s ease; }
+
+.f-children-body {
+  margin-top: 12px; padding-left: 16px;
+  border-left: 2px solid var(--border);
+}
+.f-children-body > .field { padding: 12px 0; border-top: 1px solid var(--border-soft); }
+.f-children-body > .field:first-child { border-top: 0; padding-top: 0; }
+
+/* ------------------------- tables & callouts ------------------------- */
+
+.doc-table { width: 100%; margin: 4px 0 16px; border-collapse: collapse; font-size: 13px; }
+.doc-table th {
+  padding: 8px 12px; text-align: left;
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.doc-table td { padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--border-soft); }
+.doc-table tr:last-child td { border-bottom: 0; }
+.doc-table td:first-child { font-family: var(--font-mono); font-weight: 600; color: var(--text-heading); white-space: nowrap; }
+
+.page-toc {
+  margin: 20px 0 4px; padding: 14px 16px;
+  background: var(--border-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.page-toc-label {
+  display: block; margin-bottom: 8px;
+  font-family: var(--font-mono); font-size: 11px;
+  letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-faint);
+}
+.page-toc ul {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-wrap: wrap; gap: 6px 18px;
+}
+.page-toc a { font-size: 13px; color: var(--text-muted); text-decoration: none; }
+.page-toc a:hover { color: var(--brand); text-decoration: underline; }
+.page-toc a:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 2px; }
+.doc h2.section { scroll-margin-top: calc(var(--topbar-h) + 16px); }
+
+.callout {
+  margin: 16px 0; padding: 12px 16px;
+  background: var(--border-soft);
+  border-left: 3px solid var(--text-faint);
+  border-radius: 0 6px 6px 0;
+}
+.callout p:last-child { margin-bottom: 0; }
+.callout-note    { border-left-color: var(--brand); background: var(--brand-soft); }
+.callout-warning { border-left-color: var(--accent-rust); background: #fff4ef; }
+:root[data-theme="dark"] .callout-warning { background: #2a1a14; }
+
+/* ------------------------- code panel ------------------------- */
+
+.code-panel { display: flex; flex-direction: column; gap: 14px; }
+
+.code-card {
+  overflow: hidden;
+  background: var(--code-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.code-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 8px 6px 10px;
+  background: var(--code-bg-alt);
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.lang-tabs { display: flex; gap: 2px; }
+.lang-tab {
+  padding: 4px 10px;
+  font: inherit; font-size: 12px; font-weight: 500;
+  color: #8fa3bf; background: none; border: 0; border-radius: 5px;
+  cursor: pointer;
+}
+.lang-tab:hover { color: var(--code-text); background: rgba(255, 255, 255, .06); }
+.lang-tab.is-active { color: var(--code-text); background: rgba(255, 255, 255, .11); }
+
+.copy-btn {
+  padding: 4px 9px;
+  font: inherit; font-size: 11px; font-weight: 500;
+  color: #8fa3bf; background: none; border: 1px solid rgba(255, 255, 255, .13); border-radius: 5px;
+  cursor: pointer;
+}
+.copy-btn:hover { color: var(--code-text); border-color: rgba(255, 255, 255, .3); }
+
+.code-label {
+  padding: 9px 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+  color: #8fa3bf;
+  background: var(--code-bg-alt);
+  border-bottom: 1px solid rgba(255, 255, 255, .06);
+}
+
+.code-body {
+  display: none;
+  margin: 0; padding: 14px 16px;
+  overflow-x: auto;
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.5;
+  color: var(--code-text);
+  tab-size: 2;
+}
+.code-body.is-active { display: block; }
+.code-body code { font-size: inherit; }
+
+.tok-key { color: var(--code-key); }
+.tok-str { color: var(--code-str); }
+.tok-num { color: var(--code-num); }
+.tok-lit { color: #c9a7ff; }
+.tok-cmd { color: #ffd9a0; }
+.tok-flag { color: #8fb8ff; }
+
+/* ------------------------- pager ------------------------- */
+
+.pager {
+  display: flex; justify-content: space-between; gap: 16px;
+  max-width: 720px; margin-top: 48px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.pager-link {
+  display: flex; flex-direction: column; gap: 2px;
+  max-width: 48%;
+  font-size: 14px; font-weight: 500; color: var(--text-heading);
+}
+.pager-link:hover { color: var(--brand); text-decoration: none; }
+.pager-link span { font-size: 12px; font-weight: 400; color: var(--text-faint); }
+.pager-next { text-align: right; margin-left: auto; }
+
+/* ------------------------- responsive ------------------------- */
+
+@media (max-width: 1500px) { :root { --rail-w: 520px; } .content { padding: 32px 32px 80px; } }
+
+/* Code panel drops inline beneath the prose it documents. */
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: var(--nav-w) minmax(0, 1fr); }
+  .content { border-right: 0; }
+  .rail {
+    position: static; max-height: none;
+    grid-column: 2; padding: 0 32px 60px;
+  }
+  .code-panel { max-width: 720px; }
+}
+
+@media (max-width: 860px) {
+  .nav-toggle { display: grid; }
+  .search { display: none; }
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .sidebar {
+    position: fixed; top: var(--topbar-h); left: 0; z-index: 35;
+    width: 280px; height: calc(100vh - var(--topbar-h));
+    transform: translateX(-100%); transition: transform .2s ease;
+    background: var(--surface);
+  }
+  .sidebar.is-open { transform: none; box-shadow: 0 8px 30px rgba(0, 0, 0, .18); }
+  .rail { grid-column: 1; padding: 0 20px 60px; }
+  .content { padding: 24px 20px 40px; }
+  .nav-scrim { position: fixed; inset: var(--topbar-h) 0 0; z-index: 30; background: rgba(10, 18, 32, .4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* ------------------------- doc actions (AI / markdown) --------------------- */
+
+.doc-actions {
+  display: flex; justify-content: flex-end; gap: 6px;
+  max-width: 720px; margin-bottom: -22px;
+}
+
+.doc-action {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 9px;
+  font: inherit; font-size: 12px; font-weight: 500;
+  color: var(--text-muted);
+  background: none; border: 1px solid transparent; border-radius: 6px;
+  cursor: pointer; white-space: nowrap;
+}
+.doc-action:hover {
+  color: var(--text-heading);
+  background: var(--page-bg);
+  border-color: var(--border);
+  text-decoration: none;
+}
+.doc-action svg { flex: none; opacity: .75; }
+
+@media (max-width: 860px) { .doc-actions { margin-bottom: -12px; } }
+
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --text-heading: #f0f4fa;
+  --text-body:    #c3ccdb;
+  --text-muted:   #97a3b8;
+  --text-faint:   #78849a;
+
+  --brand:        #9c8bff;
+  --brand-soft:   #241f47;
+  --accent-green: #6fd35a;
+  --accent-rust:  #ff9b6a;
+
+  --page-bg:   #0b1220;
+  --surface:   #121b2c;
+  --border:    #26334a;
+  --border-soft:#1c2740;
+
+  --code-bg:     #060d18;
+  --code-bg-alt: #0d1626;
+  }
+}
+
+/* Bundle-only: the raw Markdown view that replaces the server-served .md twin. */
+.md-view {
+  display: none;
+  max-width: 720px; margin: 0; padding: 18px 20px;
+  overflow-x: auto;
+  font-family: var(--font-mono); font-size: 12.5px; line-height: 1.6;
+  color: var(--text-body);
+  background: var(--page-bg);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  white-space: pre-wrap; word-break: break-word;
+}
+body.md-mode .md-view { display: block; }
+body.md-mode .doc, body.md-mode .rail, body.md-mode .pager { display: none; }
+
+
+/* Pages the record hosts versus pages it does not — a yes/no column. */
+.doc-table td.yes { color: var(--accent-green); font-weight: 600; }
+.doc-table td.no  { color: var(--accent-rust);  font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="#/__HOME__">
+    <span class="brand-mark">__BRAND__</span><span class="brand-sub">__BRAND_SUB__</span>
+  </a>
+  <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path d="M2 5h14M2 9h14M2 13h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg>
+  </button>
+  <div class="topbar-right">
+    <input class="search" type="search" placeholder="Find anything" aria-label="Search documentation">
+    <button class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+      <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3.2"/><path d="M8 1v1.6M8 13.4V15M15 8h-1.6M2.6 8H1M12.9 3.1l-1.1 1.1M4.2 11.8l-1.1 1.1M12.9 12.9l-1.1-1.1M4.2 4.2L3.1 3.1" stroke-linecap="round"/></svg>
+      <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13.5 9.6A5.8 5.8 0 016.4 2.5a5.8 5.8 0 107.1 7.1z" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" aria-label="__TITLE__">
+    <div class="sidebar-inner">__NAV__</div>
+  </nav>
+
+  <main class="content" id="content">
+    <div class="doc-actions">
+      <button class="doc-action" id="copy-md" title="Copy this page as Markdown for pasting into an AI assistant">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="4.5" y="4.5" width="8" height="8" rx="1.4"/><path d="M9.5 1.5h-7a1 1 0 00-1 1v7" stroke-linecap="round"/></svg>
+        <span>Copy for LLM</span>
+      </button>
+      <button class="doc-action" id="view-md" title="View this page as Markdown">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2 3.5h10M2 7h10M2 10.5h6" stroke-linecap="round"/></svg>
+        <span>View as Markdown</span>
+      </button>
+    </div>
+    <article class="doc" id="doc"></article>
+    <pre class="md-view" id="md-view"></pre>
+    <div class="pager" id="pager"></div>
+  </main>
+
+  <aside class="rail" id="rail"></aside>
+</div>
+
+<div class="nav-scrim" hidden></div>
+
+<script id="docs-data" type="application/json">__DATA__</script>
+
+<script>
+/* MODUS Command Reference &#8212; single-file bundle runtime.
+   Hash routing plus the same behaviours the multi-page site ships. */
+(() => {
+  'use strict';
+
+  const PAGES = JSON.parse(document.getElementById('docs-data').textContent);
+  const ROUTES = Object.keys(PAGES);
+  const HOME = ROUTES[0];
+
+  // An artifact runs in a sandboxed frame where localStorage access can throw
+  // outright. Unguarded, that kills this IIFE and the page renders blank &#8212; so
+  // every read and write goes through these.
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* not fatal */ } },
+  };
+
+  let shown = null;
+
+  const root = document.documentElement;
+  const doc = document.getElementById('doc');
+  const rail = document.getElementById('rail');
+  const pager = document.getElementById('pager');
+  const mdView = document.getElementById('md-view');
+  const sidebar = document.querySelector('.sidebar');
+
+  /* &#9472;&#9472; theme &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  // The artifact host may already have stamped a theme. Respect that; only
+  // stamp our own when the document arrives un-stamped AND the reader has
+  // expressed a preference here before.
+  const THEME_KEY = '__STORE__-theme';
+  const stored = store.get(THEME_KEY);
+  if (!root.dataset.theme) {
+    root.dataset.theme = stored
+      ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  }
+
+  document.querySelector('.theme-toggle').addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    store.set(THEME_KEY, next);
+  });
+
+  /* &#9472;&#9472; syntax highlighting &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  // Single pass, for the reason documented in docs.js: chained replaces let a
+  // keyword match inside markup a previous pass injected.
+  const wrap = (c, s) => `<span class="tok-${c}">${s}</span>`;
+  const escHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const hlJson = (src) => src.replace(
+    /("(?:\\.|[^"\\])*")(\s*:)?|\b(-?\d+\.?\d*(?:e[+-]?\d+)?)\b|\b(true|false|null)\b/gi,
+    (m, str, colon, num, lit) => {
+      if (str) return colon ? wrap('key', str) + colon : wrap('str', str);
+      if (num) return wrap('num', num);
+      return wrap('lit', lit);
+    },
+  );
+
+  const hlShell = (src) => src.replace(
+    /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(^|\s)(curl|http|https)\b|(\s)(--?[a-zA-Z][\w-]*)/g,
+    (m, str, p1, cmd, p2, flag) => {
+      if (str) return wrap('str', str);
+      if (cmd) return p1 + wrap('cmd', cmd);
+      return p2 + wrap('flag', flag);
+    },
+  );
+
+  const hlCode = (src) => src.replace(
+    /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)|\b(const|let|var|await|async|function|return|import|from|new|if|else|for|def|class|print|True|False|None|null|true|false)\b|\b(\d+\.?\d*)\b/g,
+    (m, str, kw, num) => {
+      if (str) return wrap('str', str);
+      if (kw) return wrap('lit', kw);
+      return wrap('num', num);
+    },
+  );
+
+  function highlight(scope) {
+    scope.querySelectorAll('.code-body').forEach((pre) => {
+      const code = pre.querySelector('code');
+      if (!code || code.dataset.hl) return;
+      const src = code.textContent;
+      const lang = pre.dataset.lang;
+      code.innerHTML = !lang ? hlJson(escHtml(src))
+        : lang === 'curl' ? hlShell(escHtml(src))
+        : hlCode(escHtml(src));
+      code.dataset.hl = '1';
+    });
+  }
+
+  /* &#9472;&#9472; language tabs &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  const LANG_KEY = '__STORE__-lang';
+
+  function applyLanguage(lang, persist = true) {
+    document.querySelectorAll('.code-card').forEach((card) => {
+      const tabs = [...card.querySelectorAll('.lang-tab')];
+      if (!tabs.length) return;
+      const target = tabs.some((t) => t.dataset.lang === lang) ? lang : tabs[0].dataset.lang;
+      tabs.forEach((t) => t.classList.toggle('is-active', t.dataset.lang === target));
+      card.querySelectorAll('.code-body[data-lang]').forEach((b) => {
+        b.classList.toggle('is-active', b.dataset.lang === target);
+      });
+    });
+    if (persist) store.set(LANG_KEY, lang);
+  }
+
+  document.addEventListener('click', (e) => {
+    const tab = e.target.closest('.lang-tab');
+    if (tab) applyLanguage(tab.dataset.lang);
+  });
+
+  /* &#9472;&#9472; copy buttons &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  async function copy(text, btn, label) {
+    const span = btn.querySelector('span') || btn;
+    const original = label ?? span.textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      span.textContent = 'Copied';
+    } catch {
+      span.textContent = 'Failed';
+    }
+    setTimeout(() => { span.textContent = original; }, 1600);
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const body = btn.closest('.code-card')?.querySelector('.code-body.is-active');
+    if (body) copy(body.textContent, btn, 'Copy');
+  });
+
+  document.getElementById('copy-md').addEventListener('click', (e) => {
+    copy(PAGES[current()].md, e.currentTarget);
+  });
+
+  const viewBtn = document.getElementById('view-md');
+  viewBtn.addEventListener('click', () => {
+    const on = document.body.classList.toggle('md-mode');
+    viewBtn.querySelector('span').textContent = on ? 'View rendered' : 'View as Markdown';
+  });
+
+  /* &#9472;&#9472; nav groups, drawer, search &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  const GROUP_KEY = '__STORE__-collapsed';
+  const collapsed = new Set(JSON.parse(store.get(GROUP_KEY) ?? '[]'));
+
+  document.querySelectorAll('.nav-group-hdr').forEach((hdr) => {
+    const name = hdr.textContent.trim();
+    if (collapsed.has(name)) hdr.setAttribute('aria-expanded', 'false');
+    hdr.addEventListener('click', () => {
+      const open = hdr.getAttribute('aria-expanded') === 'true';
+      hdr.setAttribute('aria-expanded', String(!open));
+      open ? collapsed.add(name) : collapsed.delete(name);
+      store.set(GROUP_KEY, JSON.stringify([...collapsed]));
+    });
+  });
+
+  const scrim = document.querySelector('.nav-scrim');
+  const toggle = document.querySelector('.nav-toggle');
+  const setDrawer = (open) => {
+    sidebar.classList.toggle('is-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    scrim.hidden = !open;
+  };
+  toggle.addEventListener('click', () => setDrawer(!sidebar.classList.contains('is-open')));
+  scrim.addEventListener('click', () => setDrawer(false));
+
+  const search = document.querySelector('.search');
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    document.querySelectorAll('.sidebar li').forEach((li) => {
+      li.style.display = !q || li.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+    document.querySelectorAll('.nav-res').forEach((r) => {
+      r.classList.toggle('is-open', q ? true : r.dataset.res === PAGES[current()].res);
+    });
+    if (q) document.querySelectorAll('.nav-group-hdr').forEach((h) => h.setAttribute('aria-expanded', 'true'));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setDrawer(false);
+    if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) {
+      e.preventDefault();
+      search.focus();
+    }
+  });
+
+  /* &#9472;&#9472; router &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  /* &#9472;&#9472; anchors &#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472; */
+  // A section link is `#/<page>~<anchor>`. The separator has to be a character
+  // no page key can contain, because the router owns the whole hash: there is
+  // only one `#` in a URL, so the usual `page#section` shape is unavailable.
+  const SEP = '~';
+
+  // Copied share links need the artifact's own address. `location.href` inside
+  // the viewer is the sandboxed frame's URL, which is useless to a reader, so
+  // the public base is pinned here. Update it if this artifact is ever
+  // republished at a different id.
+  const SHARE_BASE = '__SHARE_BASE__';
+
+  const slug = (s) => s.toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'section';
+
+  function parseHash() {
+    const raw = location.hash.replace(/^#\/?/, '');
+    if (!raw) return { r: HOME, a: '' };
+    const cut = raw.indexOf(SEP);
+    if (cut !== -1) {
+      const path = raw.slice(0, cut);
+      return { r: PAGES[path] ? path : HOME, a: raw.slice(cut + 1) };
+    }
+    if (PAGES[raw]) return { r: raw, a: '' };
+    // A bare `#section` — a hand-authored in-page link, or a link shared
+    // before this scheme existed. Resolve it against whatever page is open
+    // rather than falling through to the home page, which is what used to
+    // happen and silently moved the reader off the page they were reading.
+    return { r: null, a: raw };
+  }
+
+  function current() { return parseHash().r ?? shown ?? HOME; }
+
+  function findAnchor(a) {
+    if (!a) return null;
+    let el = null;
+    try { el = doc.querySelector(`[data-anchor="${CSS.escape(a)}"]`); } catch { /* bad selector */ }
+    if (!el) { try { el = doc.querySelector(`#${CSS.escape(a)}`); } catch { /* bad selector */ } }
+    return el;
+  }
+
+  let targeted = null;
+  function goToAnchor(a) {
+    const el = findAnchor(a);
+    if (!el) { window.scrollTo(0, 0); return false; }
+    // The heading itself carries the id; highlight the row a reader expects.
+    const mark = el.classList.contains('f-name') ? el.closest('.field') ?? el : el;
+    if (targeted) targeted.classList.remove('is-targeted');
+    mark.classList.add('is-targeted');
+    targeted = mark;
+    el.scrollIntoView({ block: 'start' });
+    return true;
+  }
+
+  // Give every section heading and every named field a stable, URL-safe anchor,
+  // and an affordance to copy a link to it. Done at render rather than baked
+  // into the content so all 59 pages get it without 145 hand edits — and so a
+  // heading added later is covered automatically.
+  function wireAnchors(r) {
+    const used = new Set();
+    const take = (base) => {
+      let a = base, n = 2;
+      while (used.has(a)) a = `${base}-${n++}`;
+      used.add(a);
+      return a;
+    };
+
+    const targets = [
+      ...doc.querySelectorAll('h2.section, h3.section'),
+      ...doc.querySelectorAll('.f-head > .f-name[id]'),
+    ];
+
+    for (const el of targets) {
+      // Prefer an id the author wrote, but only when it can survive a URL.
+      const own = el.getAttribute('id');
+      const safe = own && /^[A-Za-z0-9_-]+$/.test(own);
+      const anchor = take(safe ? own : slug(el.textContent || ''));
+      el.setAttribute('data-anchor', anchor);
+      if (!own) el.id = anchor;
+
+      if (el.querySelector('.anchor-link')) continue;
+      const link = document.createElement('a');
+      link.className = 'anchor-link';
+      link.href = `#/${r}${SEP}${anchor}`;
+      link.textContent = '#';
+      link.setAttribute('aria-label', `Copy link to ${el.textContent.trim()}`);
+      link.title = 'Copy link to this section';
+      el.appendChild(link);
+    }
+  }
+
+  // Author-written TOCs link as `#section`. Rewrite them to the canonical form
+  // so clicking one leaves a shareable URL behind rather than a bare fragment
+  // that only resolves for a reader already on this page.
+  function canonicaliseLinks(r) {
+    doc.querySelectorAll('a[href^="#"]').forEach((a) => {
+      const h = a.getAttribute('href');
+      if (!h || h.startsWith('#/') || a.classList.contains('anchor-link')) return;
+      a.setAttribute('href', `#/${r}${SEP}${h.slice(1)}`);
+    });
+  }
+
+  // Pages whose author did not write a TOC get one, so sections are visible
+  // enough to be linked. Short pages are left alone — a two-item contents box
+  // is furniture, not navigation.
+  function autoToc() {
+    if (doc.querySelector('.page-toc')) return;
+    const heads = [...doc.querySelectorAll('h2.section')];
+    if (heads.length < 3) return;
+    const nav = document.createElement('nav');
+    nav.className = 'page-toc toc-auto';
+    nav.setAttribute('aria-label', 'On this page');
+    const items = heads.map((h) => {
+      const a = h.querySelector('.anchor-link');
+      if (!a) return '';
+      const label = h.textContent.replace(/#$/, '').replace(/Copied$/, '').trim();
+      return `<li><a href="${a.getAttribute('href')}">${label}</a></li>`;
+    }).join('');
+    nav.innerHTML = `<span class="page-toc-label">On this page</span><ul>${items}</ul>`;
+    const h1 = doc.querySelector('h1');
+    const lede = h1 && h1.nextElementSibling;
+    const after = lede && lede.classList.contains('endpoint-line')
+      ? (lede.nextElementSibling && lede.nextElementSibling.classList.contains('lede')
+          ? lede.nextElementSibling : lede)
+      : (lede && lede.classList.contains('lede') ? lede : h1);
+    if (after && after.parentNode) after.insertAdjacentElement('afterend', nav);
+  }
+
+  // Clicking the `#` copies a full, shareable URL. The hash still changes, so
+  // the scroll and the highlight happen through the normal routing path.
+  doc.addEventListener('click', (e) => {
+    const link = e.target.closest && e.target.closest('.anchor-link');
+    if (!link) return;
+    const url = SHARE_BASE + link.getAttribute('href');
+    const flash = () => {
+      link.classList.add('is-copied');
+      link.textContent = 'Copied';
+      setTimeout(() => { link.classList.remove('is-copied'); link.textContent = '#'; }, 1400);
+    };
+    // Clipboard access can be refused outright in a sandboxed frame. The URL
+    // in the address bar is the fallback, so a failure must stay silent.
+    try {
+      const w = navigator.clipboard && navigator.clipboard.writeText(url);
+      if (w && w.then) w.then(flash, () => {}); else flash();
+    } catch { /* address bar still updates */ }
+  });
+
+
+  function render(r) {
+    const page = PAGES[r];
+
+    doc.innerHTML = page.left;
+    rail.innerHTML = page.right;
+    mdView.textContent = page.md;
+    document.title = `${page.title} | __TITLE__`;
+
+    // Leaving markdown mode on navigation &#8212; the toggle is per-page, not sticky.
+    document.body.classList.remove('md-mode');
+    viewBtn.querySelector('span').textContent = 'View as Markdown';
+
+    pager.innerHTML = [
+      page.prev ? `<a class="pager-link pager-prev" href="#/${page.prev.r}"><span>Previous</span>${page.prev.t}</a>` : '<span></span>',
+      page.next ? `<a class="pager-link pager-next" href="#/${page.next.r}"><span>Next</span>${page.next.t}</a>` : '<span></span>',
+    ].join('');
+
+    document.querySelectorAll('.nav-link').forEach((a) => {
+      a.classList.toggle('is-active', a.dataset.key === page.navKey);
+      if (a.dataset.parent) a.classList.toggle('is-parent', a.dataset.parent === page.res);
+    });
+    document.querySelectorAll('.nav-res').forEach((li) => {
+      li.classList.toggle('is-open', li.dataset.res === page.res);
+    });
+
+    wireAnchors(r);
+    canonicaliseLinks(r);
+    autoToc();
+
+    highlight(rail);
+    applyLanguage(store.get(LANG_KEY) ?? 'curl', false);
+
+    setDrawer(false);
+
+    const active = document.querySelector('.nav-link.is-active');
+    if (active) {
+      const a = active.getBoundingClientRect();
+      const s = sidebar.getBoundingClientRect();
+      if (a.top < s.top || a.bottom > s.bottom) active.scrollIntoView({ block: 'center' });
+    }
+  }
+
+  function route() {
+    const { r, a } = parseHash();
+    const target = r ?? shown ?? HOME;
+    if (target !== shown) { render(target); shown = target; }
+    if (a) {
+      // A bare `#section` leaves a URL nobody else can use. Rewrite it in
+      // place — replaceState does not re-fire hashchange, so this cannot loop.
+      if (!location.hash.startsWith(`#/${target}${SEP}`)) {
+        try { history.replaceState(null, '', `#/${target}${SEP}${a}`); } catch { /* sandbox */ }
+      }
+      goToAnchor(a);
+    } else {
+      if (targeted) { targeted.classList.remove('is-targeted'); targeted = null; }
+      document.querySelector('.content').scrollIntoView({ block: 'start' });
+      window.scrollTo(0, 0);
+    }
+  }
+
+  addEventListener('hashchange', route);
+  route();
+})();
+
+</script>
+
+</body></html>

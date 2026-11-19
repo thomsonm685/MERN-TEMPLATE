@@ -1,0 +1,22 @@
+{
+  "name": "mern-template",
+  "owner": {
+    "name": "thomsonm685"
+  },
+  "plugins": [
+    {
+      "name": "app-builder",
+      "source": "./plugins/app-builder",
+      "description": "Takes a non-technical person from an idea to a ready-to-build project: asks plain-English questions, installs the MERN template, writes their answers into the six spec sheets, starts a local MongoDB and Postgres that need no installing, and offers to build v1. Ships two more skills: code-report for a readable record of every change, and app-docs for a Stripe-style reference site for the finished app.",
+      "version": "2.1.0",
+      "author": {
+        "name": "thomsonm685"
+      },
+      "keywords": ["mern", "scaffold", "non-technical", "app-builder", "spec", "docs"],
+      "category": "development"
+    }
+  ],
+  "metadata": {
+    "description": "Everything in this repo that Claude Code can install. Add it straight from a clone: /plugin marketplace add ."
+  }
+}

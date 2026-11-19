@@ -27,21 +27,52 @@ To re-audit the repo and bring all three back in sync after a change, run the
 
 ## Building an app from this template
 
-The [`app-builder`](plugins/app-builder/) plugin turns this template into a finished app
-through a plain-English conversation — no terminal knowledge required. It interviews the
-person about their idea, clones and installs this template, writes the spec into
-`seed-documentation/`, builds a working v1, and starts it locally.
+The [`app-builder`](plugins/app-builder/) plugin turns this template into a project that
+is ready to build, through a plain-English conversation — no terminal knowledge required.
+It interviews the person about their idea, clones and installs this template, writes the
+spec into `seed-documentation/`, starts a local MongoDB and Postgres (no installer, no
+Docker, no Atlas account), verifies the untouched template passes its own checks, and then
+offers to build v1 from the spec. It also ships the `code-report` skill, which publishes a
+one-page record of what changed after any sizeable edit.
+
+Two ways to install it. **From this repo** needs nothing but the public clone:
+
+```bash
+git clone https://github.com/thomsonm685/MERN-TEMPLATE.git
+cd MERN-TEMPLATE
+bash scripts/install-plugins.sh      # registers this repo and installs every plugin in it
+```
+
+Or, inside Claude Code, the same two steps by hand:
+
+```bash
+/plugin marketplace add ./           # the trailing slash matters; a bare "." is rejected
+/plugin install app-builder@mern-template
+```
+
+**From Grimoire** if you have access to the (private) marketplace repo:
 
 ```bash
 /plugin marketplace add odyssey-core/grimoire
 /plugin install app-builder@grimoire
 ```
 
-Then, in any folder: `build me an app`.
+Either way: restart Claude Code, then say `build me an app` in any folder — including this
+one. Said from inside a clone of this repo, the skill sets the app up **in place** instead
+of cloning a second copy.
 
-The plugin lives in this repo under `plugins/app-builder/`; the Grimoire marketplace only
-holds a pointer to it. Bump the version in `plugins/app-builder/.claude-plugin/plugin.json`
-when you change it — teammates pick it up with `/plugin marketplace update`.
+Three skills come with it:
+
+| Skill         | Say                     | Does                                                                                     |
+| ------------- | ----------------------- | ---------------------------------------------------------------------------------------- |
+| `new-app`     | "build me an app"       | Interview → template installed → spec sheets filled → local databases running → build v1 |
+| `code-report` | "show me a code report" | A one-page record of what changed, where, and why. Run it after any sizeable change.     |
+| `app-docs`    | "document my app"       | A Stripe-style reference site for the finished app — one self-contained HTML file.       |
+
+The plugins live in this repo under `plugins/`; [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json)
+is the index, and Grimoire only holds a pointer. Bump the version in a plugin's
+`.claude-plugin/plugin.json` when you change it — teammates pick it up with
+`/plugin marketplace update`.
 
 ## Prerequisites
 
