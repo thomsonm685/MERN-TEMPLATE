@@ -126,6 +126,14 @@ The earlier proposed refreshes send nothing.
 
 Anything else: skip this whole section, nothing else about the report changes.
 
+**The table above is Odyssey-internal.** It is the confirmed repo-to-project
+mapping for one team's Linear workspace, not a general feature. If you installed
+this skill from the marketplace and want a feed for your own repo, add a row to
+the table and a matching `case` arm below - `$REPO` is the directory name of the
+repo root, and the project string is anything Linear resolves (a name or a
+`P-XXX-0` identifier). Add nothing and the skill publishes the page and stops,
+which is the correct behaviour everywhere except those three repos.
+
 ```bash
 case "$REPO" in
   MODUS-Command) LP="MODUS Command" ;;
@@ -388,6 +396,6 @@ the fields rather than starting from the schema above; it is faster and it
 shows the register the `why` lines should be written in.
 
 ```bash
-python3 ~/.claude/skills/code-report/render.py \
-        ~/.claude/skills/code-report/example.json /tmp/example.html
+S=$(dirname "$(find ~/.claude -maxdepth 8 -path '*skills/code-report/render.py' 2>/dev/null | head -1)")
+python3 "$S/render.py" "$S/example.json" /tmp/example.html
 ```

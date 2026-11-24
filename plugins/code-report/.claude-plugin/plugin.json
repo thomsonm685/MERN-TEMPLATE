@@ -1,0 +1,8 @@
+{
+  "name": "code-report",
+  "version": "1.0.0",
+  "description": "Publish a one-page artifact showing the exact code that changed or will change, where (file and line numbers), and why - with a PROPOSED or APPLIED banner at the top. Works in any repo, and logs applied reports to the matching Linear project for the three Odyssey repos that have a feed.",
+  "author": {
+    "name": "thomsonm685"
+  }
+}

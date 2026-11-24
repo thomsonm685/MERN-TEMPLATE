@@ -22,7 +22,7 @@ and the anchor-copy behaviour. You write pages; the build script assembles them.
 ```bash
 # 1. author the pages file (see reference/page-plan.md for the shape and the markup)
 #    /tmp/<slug>-docs.json
-# 2. build
+# 2. build - from the skill directory
 node scripts/build-docs.mjs /tmp/<slug>-docs.json <project>/docs/<slug>-reference.html
 # 3. open it and look at it before you say it's done
 ```
